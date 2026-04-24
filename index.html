@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Art Archive & Search</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        /* --- SEARCH BOX STYLING --- */
+        .search-container {
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 50px;
+            position: sticky;
+            top: 20px;
+            z-index: 10;
+        }
+
+        #artSearch {
+            width: 100%;
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 2px solid var(--primary);
+            background: var(--card-bg);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+        }
+
+        #artSearch::placeholder {
+            color: var(--text-dim);
+        }
+
+        .gallery-container {
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .art-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .explanation-section { padding: 30px; }
+        .explanation-section h2 { margin: 0 0 10px 0; color: var(--primary); }
+        .description { line-height: 1.6; color: var(--text-dim); margin-bottom: 20px; }
+
+        .metadata-box {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .prompt-text { display: block; margin-top: 5px; color: #cbd5e1; font-family: monospace; }
+
+        .copy-btn {
+            margin-top: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #no-results {
+            display: none;
+            text-align: center;
+            color: var(--text-dim);
+            margin-top: 50px;
+        }
+
+        #toast {
+            visibility: hidden;
+            background-color: #10b981;
+            color: white;
+            padding: 16px;
+            position: fixed;
+            bottom: 30px;
+            border-radius: 8px;
+        }
+
+        #toast.show { visibility: visible; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AI Archive</h1>
+        <p>Search by title, description, or prompt keywords.</p>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="artSearch" placeholder="Search for art (e.g. 'cyberpunk', 'forest', 'gold')..." onkeyup="filterArt()">
+    </div>
+
+    <main class="gallery-container" id="gallery">
+        
+        <div class="art-card">
+            <div class="image-wrapper">
+                <img src="https://via.placeholder.com/800x500/1e293b/fff?text=Digital+Alchemist" alt="AI Art">
+            </div>
+            <div class="explanation-section">
+                <h2 class="searchable">The Digital Alchemist</h2>
+                <p class="description searchable">A fusion of medieval chemistry and future binary code.</p>
+                <div class="metadata-box">
+                    <strong>Prompt:</strong> 
+                    <span class="prompt-text searchable" id="p1">liquid gold binary code octane render</span>
+                    <button class="copy-btn" onclick="copyPrompt('p1')">Copy Prompt</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="art-card">
+            <div class="image-wrapper">
+                <img src="https://via.placeholder.com/800x500/1e293b/fff?text=Cybernetic+Forest" alt="AI Art">
+            </div>
+            <div class="explanation-section">
+                <h2 class="searchable">Cybernetic Forest</h2>
+                <p class="description searchable">Luminescent plants with glowing veins in a dark jungle.</p>
+                <div class="metadata-box">
+                    <strong>Prompt:</strong> 
+                    <span class="prompt-text searchable" id="p2">bioluminescent leaves glass textures bokeh forest</span>
+                    <button class="copy-btn" onclick="copyPrompt('p2')">Copy Prompt</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="no-results">No matches found for your search.</div>
+    </main>
+
+    <div id="toast">Copied!</div>
+
+    <script>
+        // --- SEARCH LOGIC ---
+        function filterArt() {
+            const input = document.getElementById('artSearch').value.toLowerCase();
+            const cards = document.getElementsByClassName('art-card');
+            let hasResults = false;
+
+            for (let i = 0; i < cards.length; i++) {
+                // Get all text within this card marked as "searchable"
+                const textContent = cards[i].innerText.toLowerCase();
+                
+                if (textContent.includes(input)) {
+                    cards[i].style.display = "block";
+                    hasResults = true;
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+
+            // Show "No Results" message if nothing matches
+            document.getElementById('no-results').style.display = hasResults ? "none" : "block";
+        }
+
+        // --- COPY LOGIC ---
+        function copyPrompt(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById("toast");
+                toast.className = "show";
+                setTimeout(() => { toast.className = ""; }, 2000);
+            });
+        }
+    </script>
+
+</body>
+</html>
